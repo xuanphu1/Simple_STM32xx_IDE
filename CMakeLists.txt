@@ -8,8 +8,16 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(wxWidgets COMPONENTS core base REQUIRED)
 include(${wxWidgets_USE_FILE})
 
+file(GLOB_RECURSE SOURCES   Component/src/*.cpp 
+                            Component/data/*.cpp 
+                            main/*.cpp
+)
+
+include_directories(Component/include
+                    main  # Nếu main.h nằm ở thư mục gốc
+)
 # Tạo executable
-add_executable(STM32IDE main.cpp)
+add_executable(STM32IDE ${SOURCES})
 
 # Link wxWidgets
 target_link_libraries(STM32IDE PRIVATE ${wxWidgets_LIBRARIES})

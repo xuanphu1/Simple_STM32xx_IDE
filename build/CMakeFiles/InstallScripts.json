@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"D:/Simple_STM32xx_IDE/build/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
