@@ -5,6 +5,11 @@ const char *path_Debug_Icon = "D:/Simple_STM32xx_IDE/Component/Assets/DebugIcon.
 const char *path_System_Icon = "D:/Simple_STM32xx_IDE/Component/Assets/System.png";
 const char *path_Run_Icon = "D:/Simple_STM32xx_IDE/Component/Assets/RunIcon.png";
 const char *path_Build_Icon = "D:/Simple_STM32xx_IDE/Component/Assets/BuildIcon.png";
+const char *path_StepInto_Icon = "D:/Simple_STM32xx_IDE/Component/Assets/debug-step-into.png";
+const char *path_StepOver_Icon = "D:/Simple_STM32xx_IDE/Component/Assets/debug-step-over.png";
+const char *path_StepOut_Icon = "D:/Simple_STM32xx_IDE/Component/Assets/debug-step-out.png";
+const char *path_Restart_Icon = "D:/Simple_STM32xx_IDE/Component/Assets/reboot.png";
+const char *path_Stop_Icon = "D:/Simple_STM32xx_IDE/Component/Assets/debug-stop.png";
 
 STM32IDE::STM32IDE() : wxFrame(nullptr, wxID_ANY, "STM32 IDE Handmade", wxDefaultPosition, wxSize(800, 600))
 {
@@ -25,8 +30,13 @@ STM32IDE::STM32IDE() : wxFrame(nullptr, wxID_ANY, "STM32 IDE Handmade", wxDefaul
     buildMenu->Append(ID_UPLOAD, "Upload");
     menubar->Append(buildMenu, "Build");
 
+    wxMenu *ViewMenu = new wxMenu();
+    ViewMenu->Append(ID_VIEW_MEMORY,"Memory");
+    menubar->Append(ViewMenu,"View");
+
     wxMenu *PeripheralsMenu = new wxMenu();
     wxMenu *systemViewerMenu = new wxMenu();
+    wxMenu *coreViewerMenu = new wxMenu();
 
     // Submenu for ADC
     wxMenu *ADCSubsystemMenu = new wxMenu();
@@ -111,21 +121,19 @@ STM32IDE::STM32IDE() : wxFrame(nullptr, wxID_ANY, "STM32 IDE Handmade", wxDefaul
     systemViewerMenu->Append(ID_PERIPH_USB, "USB");
     systemViewerMenu->Append(ID_PERIPH_WWDG, "WWDG");
 
+    coreViewerMenu->Append(ID_DEBUG_CORE_NVIC,"Nested Vectored Interrupt Controller (NVIC)");
+    coreViewerMenu->Append(ID_DEBUG_CORE_SCAC,"System Control and Configuration");
+    coreViewerMenu->Append(ID_DEBUG_CORE_SYSTICK,"System Tick Timer (SysTick)");
+    coreViewerMenu->Append(ID_DEBUG_CORE_FAULTRP,"Fault Reports");
+
     PeripheralsMenu->AppendSubMenu(systemViewerMenu, "System Viewer");
-    PeripheralsMenu->Append(ID_CORE_PERIPHERALS, "Core Peripherals");
+    PeripheralsMenu->AppendSubMenu(coreViewerMenu, "Core Peripherals");
     menubar->Append(PeripheralsMenu, "Peripherals");
     SetMenuBar(menubar);
 
     // Toolbar
     wxToolBar *toolbar = CreateToolBar();
     wxBitmap runBitmap = wxArtProvider::GetBitmap(wxART_EXECUTABLE_FILE, wxART_TOOLBAR);
-    // wxBitmap buildBitmap = wxArtProvider::GetBitmap(wxART_HARDDISK, wxART_TOOLBAR);
-
-    // wxBitmap runBitmap(path_Run_Icon,wxBITMAP_TYPE_PNG);
-    // wxImage runImage = runBitmap.ConvertToImage();
-    // runImage = runImage.Scale(36,36);
-    // runBitmap = wxBitmap(runImage);
-
     wxBitmap buildBitmap(path_Build_Icon, wxBITMAP_TYPE_PNG);
     wxImage BuildImage = buildBitmap.ConvertToImage();
     BuildImage = BuildImage.Scale(36, 36);
@@ -145,6 +153,42 @@ STM32IDE::STM32IDE() : wxFrame(nullptr, wxID_ANY, "STM32 IDE Handmade", wxDefaul
     toolbar->AddTool(ID_BUILD, "Build", buildBitmap, "Build");
     toolbar->AddTool(ID_DEBUG, "Debug", debugBitmap, "Debug");
     toolbar->AddTool(ID_CONFIG_SYSTEM, "Config System", configSystemBitmap, "Config System");
+
+    wxBitmap stepIntoBitmap(path_StepInto_Icon, wxBITMAP_TYPE_PNG);
+    wxImage stepIntoImage = stepIntoBitmap.ConvertToImage();
+    stepIntoImage = stepIntoImage.Scale(24, 24);
+    stepIntoBitmap = wxBitmap(stepIntoImage);
+
+    wxBitmap stepOverBitmap(path_StepOver_Icon, wxBITMAP_TYPE_PNG);
+    wxImage stepOverImage = stepOverBitmap.ConvertToImage();
+    stepOverImage = stepOverImage.Scale(24, 24);
+    stepOverBitmap = wxBitmap(stepOverImage);
+
+    wxBitmap stepOutBitmap(path_StepOut_Icon, wxBITMAP_TYPE_PNG);
+    wxImage stepOutImage = stepOutBitmap.ConvertToImage();
+    stepOutImage = stepOutImage.Scale(24, 24);
+    stepOutBitmap = wxBitmap(stepOutImage);
+
+    wxBitmap StopBitmap(path_Stop_Icon, wxBITMAP_TYPE_PNG);
+    wxImage StopImage = StopBitmap.ConvertToImage();
+    StopImage = StopImage.Scale(24, 24);
+    StopBitmap = wxBitmap(StopImage);
+
+    wxBitmap RestartBitmap(path_Restart_Icon, wxBITMAP_TYPE_PNG);
+    wxImage RestartImage = RestartBitmap.ConvertToImage();
+    RestartImage = RestartImage.Scale(24, 24);
+    RestartBitmap = wxBitmap(RestartImage);
+
+    // Thêm các nút debug với bitmap mặc định
+    toolbar->AddTool(ID_DEBUG_STEP_INTO, "Step Into", stepIntoBitmap, "Step into the next statement");
+    toolbar->AddTool(ID_DEBUG_STEP_OVER, "Step Over", stepOverBitmap, "Step over the next statement");
+    toolbar->AddTool(ID_DEBUG_STEP_OUT, "Step Out", stepOutBitmap, "Step out of the current function");
+    toolbar->AddTool(ID_DEBUG_CONTINUE, "Continue", wxArtProvider::GetBitmap(wxART_GO_FORWARD, wxART_TOOLBAR), "Continue execution until the next breakpoint");
+    toolbar->AddTool(ID_DEBUG_STOP,"Stop",StopBitmap,"Stop code execution");
+    toolbar->AddTool(ID_DEBUG_RESTART,"Restart",RestartBitmap,"Restart the CPU");
+
+    // toolbar->SetBackgroundColour(wxColour(0, 0, 0)); // Màu xám nhạt
+    // toolbar->SetBackgroundStyle(wxBG_STYLE_PAINT);   // Đảm bảo màu nền được vẽ
     toolbar->Realize();
 
     // Layout
@@ -183,7 +227,7 @@ STM32IDE::STM32IDE() : wxFrame(nullptr, wxID_ANY, "STM32 IDE Handmade", wxDefaul
     Bind(wxEVT_TOOL, &STM32IDE::OnRun, this, ID_RUN);
     Bind(wxEVT_TOOL, &STM32IDE::OnBuild, this, ID_BUILD);
     Bind(wxEVT_TOOL, &STM32IDE::OnConfigSystem, this, ID_CONFIG_SYSTEM); // Bind sự kiện cho Config System
-    
+
     wxDirDialog dlg(this, "Select Project Directory", "", wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
     if (dlg.ShowModal() == wxID_OK)
     {
@@ -306,6 +350,6 @@ void STM32IDE::OnRun(wxCommandEvent &event)
 
 void STM32IDE::OnConfigSystem(wxCommandEvent &event)
 {
-    ConfigSystemDialog dialog(this, linkerPath, startupPath, makefilePath, currentWorkingDir);
+    ConfigSystemDialog dialog(this, linkerPath, startupPath, makefilePath, libraryPath, currentWorkingDir);
     dialog.ShowModal();
 }

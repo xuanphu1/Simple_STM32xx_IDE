@@ -17,6 +17,7 @@ enum {
         ID_OPEN_PROJECT,
         ID_NEW_FOLDER,
         ID_DEBUG,
+        ID_VIEW_MEMORY,
         ID_SYSTEM_VIEWER,
         ID_CORE_PERIPHERALS,
         ID_PERIPH_ADC,
@@ -82,7 +83,20 @@ enum {
         ID_PERIPH_USB,
         ID_PERIPH_WWDG,
 
-        ID_CONFIG_SYSTEM
+        ID_CONFIG_SYSTEM,
+        ID_DEBUG_STEP_INTO,  // ID cho nút Step Into
+        ID_DEBUG_STEP_OVER,  // ID cho nút Step Over
+        ID_DEBUG_STEP_OUT,   // ID cho nút Step Out
+        ID_DEBUG_CONTINUE,    // ID cho nút Continue
+        ID_DEBUG_RESTART,
+        ID_DEBUG_STOP,
+
+        ID_DEBUG_CORE_NVIC,
+        ID_DEBUG_CORE_SCAC,
+        ID_DEBUG_CORE_SYSTICK,
+        ID_DEBUG_CORE_FAULTRP
+
+
     };
 
     wxTreeCtrl* tree;
@@ -94,6 +108,7 @@ enum {
     wxString startupPath;  // Đường dẫn tới startup file
     wxString makefilePath; // Đường dẫn tới Makefile
     wxString currentWorkingDir; // Biến mới để lưu đường dẫn hiện tại
+    wxString libraryPath; // Biến mới để lưu đường dẫn thư viện
 
     wxString projectPath;
     DirectoryTreeManager* treeManager; // Thêm con trỏ đến DirectoryTreeManager
@@ -106,6 +121,11 @@ enum {
     void OnRun(wxCommandEvent& event);
     void OnPeripheralSelected(wxCommandEvent& event);
     void OnConfigSystem(wxCommandEvent& event); // Thêm hàm xử lý sự kiện Config System
+
+    void OnDebugStepInto(wxCommandEvent& event);  // Sự kiện cho Step Into
+    void OnDebugStepOver(wxCommandEvent& event);  // Sự kiện cho Step Over
+    void OnDebugStepOut(wxCommandEvent& event);   // Sự kiện cho Step Out
+    void OnDebugContinue(wxCommandEvent& event);  // Sự kiện cho Continue
 };
 
 #endif // STM32IDE_H
