@@ -8,6 +8,7 @@
 #include <wx/filedlg.h>
 #include <wx/stdpaths.h>
 #include <wx/artprov.h>
+#include <wx/textfile.h>
 
 
 

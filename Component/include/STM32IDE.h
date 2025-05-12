@@ -107,7 +107,9 @@ enum {
     wxString linkerPath;   // Đường dẫn tới linker script
     wxString startupPath;  // Đường dẫn tới startup file
     wxString makefilePath; // Đường dẫn tới Makefile
+    wxString configMakefile; // Đường dẫn tới config Makefile
     wxString currentWorkingDir; // Biến mới để lưu đường dẫn hiện tại
+    wxString toolPath; // Biến mới để lưu đường dẫn thư mục Tools
     wxString libraryPath; // Biến mới để lưu đường dẫn thư viện
 
     wxString projectPath;

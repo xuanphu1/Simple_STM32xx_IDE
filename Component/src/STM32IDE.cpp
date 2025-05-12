@@ -16,6 +16,13 @@ STM32IDE::STM32IDE() : wxFrame(nullptr, wxID_ANY, "STM32 IDE Handmade", wxDefaul
     Maximize();
 
     currentWorkingDir = wxGetCwd(); // Biến mới để lưu đường dẫn hiện tại
+    currentWorkingDir.Replace("\\", "/");
+    makefilePath = currentWorkingDir + "/../Component/Tools/System/Makefile";
+    configMakefile = currentWorkingDir + "/../Component/Tools/System/Config.mk";
+    startupPath = currentWorkingDir + "/../Component/Tools/System/Startup.c";
+    linkerPath = currentWorkingDir + "/../Component/Tools/System/Linker.ld";
+    toolPath = currentWorkingDir + "/../Component/Tools";
+
     // Menu Bar
     wxMenuBar *menubar = new wxMenuBar();
     wxMenu *fileMenu = new wxMenu();
@@ -31,8 +38,8 @@ STM32IDE::STM32IDE() : wxFrame(nullptr, wxID_ANY, "STM32 IDE Handmade", wxDefaul
     menubar->Append(buildMenu, "Build");
 
     wxMenu *ViewMenu = new wxMenu();
-    ViewMenu->Append(ID_VIEW_MEMORY,"Memory");
-    menubar->Append(ViewMenu,"View");
+    ViewMenu->Append(ID_VIEW_MEMORY, "Memory");
+    menubar->Append(ViewMenu, "View");
 
     wxMenu *PeripheralsMenu = new wxMenu();
     wxMenu *systemViewerMenu = new wxMenu();
@@ -121,10 +128,10 @@ STM32IDE::STM32IDE() : wxFrame(nullptr, wxID_ANY, "STM32 IDE Handmade", wxDefaul
     systemViewerMenu->Append(ID_PERIPH_USB, "USB");
     systemViewerMenu->Append(ID_PERIPH_WWDG, "WWDG");
 
-    coreViewerMenu->Append(ID_DEBUG_CORE_NVIC,"Nested Vectored Interrupt Controller (NVIC)");
-    coreViewerMenu->Append(ID_DEBUG_CORE_SCAC,"System Control and Configuration");
-    coreViewerMenu->Append(ID_DEBUG_CORE_SYSTICK,"System Tick Timer (SysTick)");
-    coreViewerMenu->Append(ID_DEBUG_CORE_FAULTRP,"Fault Reports");
+    coreViewerMenu->Append(ID_DEBUG_CORE_NVIC, "Nested Vectored Interrupt Controller (NVIC)");
+    coreViewerMenu->Append(ID_DEBUG_CORE_SCAC, "System Control and Configuration");
+    coreViewerMenu->Append(ID_DEBUG_CORE_SYSTICK, "System Tick Timer (SysTick)");
+    coreViewerMenu->Append(ID_DEBUG_CORE_FAULTRP, "Fault Reports");
 
     PeripheralsMenu->AppendSubMenu(systemViewerMenu, "System Viewer");
     PeripheralsMenu->AppendSubMenu(coreViewerMenu, "Core Peripherals");
@@ -184,11 +191,9 @@ STM32IDE::STM32IDE() : wxFrame(nullptr, wxID_ANY, "STM32 IDE Handmade", wxDefaul
     toolbar->AddTool(ID_DEBUG_STEP_OVER, "Step Over", stepOverBitmap, "Step over the next statement");
     toolbar->AddTool(ID_DEBUG_STEP_OUT, "Step Out", stepOutBitmap, "Step out of the current function");
     toolbar->AddTool(ID_DEBUG_CONTINUE, "Continue", wxArtProvider::GetBitmap(wxART_GO_FORWARD, wxART_TOOLBAR), "Continue execution until the next breakpoint");
-    toolbar->AddTool(ID_DEBUG_STOP,"Stop",StopBitmap,"Stop code execution");
-    toolbar->AddTool(ID_DEBUG_RESTART,"Restart",RestartBitmap,"Restart the CPU");
+    toolbar->AddTool(ID_DEBUG_STOP, "Stop", StopBitmap, "Stop code execution");
+    toolbar->AddTool(ID_DEBUG_RESTART, "Restart", RestartBitmap, "Restart the CPU");
 
-    // toolbar->SetBackgroundColour(wxColour(0, 0, 0)); // Màu xám nhạt
-    // toolbar->SetBackgroundStyle(wxBG_STYLE_PAINT);   // Đảm bảo màu nền được vẽ
     toolbar->Realize();
 
     // Layout
@@ -304,21 +309,85 @@ void STM32IDE::OnOpenProject(wxCommandEvent &event)
 
 void STM32IDE::OnBuild(wxCommandEvent &event)
 {
-    console->Clear();
-    console->AppendText("Building...\n");
+
+    if (projectPath.IsEmpty())
+    {
+        console->AppendText("No project directory selected. Please open a project first.\n");
+        return;
+    }
+
+    if (makefilePath.IsEmpty())
+    {
+        console->AppendText("Makefile not specified. Please configure the system first.\n");
+        return;
+    }
+
+    if (linkerPath.IsEmpty() || startupPath.IsEmpty())
+    {
+        console->AppendText("Linker script or startup file not specified. Please configure the system first.\n");
+        return;
+    }
+
+    console->AppendText("Building project...\n");
+
+    wxTextFile configmakefile(configMakefile);
+    if (configmakefile.Exists())
+    {
+        configmakefile.Open();
+        configmakefile.Clear(); // Xóa nội dung cũ
+    }
+    else
+    {
+        configmakefile.Create();
+    }
+    projectPath.Replace("\\", "/");
+    configmakefile.AddLine(wxString::Format("PRO_DIR := %s", projectPath));
+    configmakefile.AddLine(wxString::Format("LINKER_SCRIPT := %s", linkerPath));
+    configmakefile.AddLine(wxString::Format("STARTUP_FILE := %s", startupPath));
+    if (!libraryPath.IsEmpty())
+    {
+        configmakefile.AddLine(wxString::Format("LIB_DIR := %s", libraryPath));
+    }
+    configmakefile.Write();
+    configmakefile.Close();
+
+    wxString cleanCommand = wxString::Format(
+        "make -C \"%s\" -f \"%s\" clean",
+        projectPath, // Thư mục dự án
+        makefilePath // Đường dẫn đến Makefile
+    );
+
     wxArrayString output, errors;
-    long result = wxExecute("arm-none-eabi-gcc -v", output, errors, wxEXEC_SYNC);
-    for (const auto &line : output)
+    long result = wxExecute(cleanCommand, output, errors, wxEXEC_SYNC);
+
+    wxString buildCommand = wxString::Format(
+        "make -C \"%s\" -f \"%s\"",
+        projectPath, // Thư mục dự án
+        makefilePath // Đường dẫn đến Makefile
+    );
+
+    
+    result = wxExecute(buildCommand, output, errors, wxEXEC_SYNC);
+
+    // Hiển thị đầu ra lên console
+    for (const wxString &line : output)
     {
         console->AppendText(line + "\n");
     }
-    for (const auto &line : errors)
+
+    // Hiển thị lỗi (nếu có) lên console
+    for (const wxString &error : errors)
     {
-        console->AppendText(line + "\n");
+        console->AppendText("ERROR: " + error + "\n");
     }
-    if (result != 0)
+
+    if (result == 0)
     {
-        console->AppendText("Build failed with exit code: " + wxString::Format("%ld", result) + "\n");
+        console->AppendText("Build completed successfully.\n");
+    }
+    else
+    {
+        console->AppendText(wxString::Format("Build failed with exit code %ld.\n", result));
     }
 }
 
@@ -327,18 +396,15 @@ void STM32IDE::OnUpload(wxCommandEvent &event)
     console->Clear();
     console->AppendText("Uploading...\n");
     wxArrayString output, errors;
-    long result = wxExecute("openocd --version", output, errors, wxEXEC_SYNC);
-    for (const auto &line : output)
+    wxString upLoadCommand = wxString::Format(
+        "make -C \"%s\" -f \"%s\" run",
+        projectPath, // Thư mục dự án
+        makefilePath // Đường dẫn đến Makefile
+    );
+    long result = wxExecute(upLoadCommand, output, errors, wxEXEC_SYNC);
+    for (const wxString &line : output)
     {
         console->AppendText(line + "\n");
-    }
-    for (const auto &line : errors)
-    {
-        console->AppendText(line + "\n");
-    }
-    if (result != 0)
-    {
-        console->AppendText("Upload failed with exit code: " + wxString::Format("%ld", result) + "\n");
     }
 }
 
@@ -350,6 +416,6 @@ void STM32IDE::OnRun(wxCommandEvent &event)
 
 void STM32IDE::OnConfigSystem(wxCommandEvent &event)
 {
-    ConfigSystemDialog dialog(this, linkerPath, startupPath, makefilePath, libraryPath, currentWorkingDir);
+    ConfigSystemDialog dialog(this, linkerPath, startupPath, libraryPath, currentWorkingDir);
     dialog.ShowModal();
 }
