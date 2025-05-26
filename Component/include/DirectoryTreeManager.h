@@ -7,13 +7,13 @@
 
 class DirectoryTreeManager {
 public:
-    DirectoryTreeManager(wxTreeCtrl* tree, wxTextCtrl* console);
+    DirectoryTreeManager(wxTreeCtrl* tree, wxStyledTextCtrl* console);
     void LoadDirectoryTree(const wxString& projectPath);
-    void OnTreeSelect(wxTreeEvent& event, wxTextCtrl* editor);
+    void OnTreeSelect(wxTreeEvent& event, wxStyledTextCtrl* editor, wxString& currentfile);
 
 private:
     wxTreeCtrl* tree;
-    wxTextCtrl* console;
+    wxStyledTextCtrl* console;
 
     void LoadDirectory(wxTreeItemId parent, const wxString& path);
 };

@@ -4,29 +4,37 @@ include $(TOOL_DIR)/System/Config.mk
 
 DRIVER_DIR    := $(PRO_DIR)/Component
 OUTPUT_DIR    := $(PRO_DIR)/Output
-PROJ_NAME     := STM32_RUN
 
 # Compiler and linker
 CC      := ${TOOL_DIR}/GNU_Toolchain/GCC_NEW/bin/arm-none-eabi-gcc
 OBJCOPY := ${TOOL_DIR}/GNU_Toolchain/GCC_NEW/bin/arm-none-eabi-objcopy
-CFLAGS  := -mcpu=cortex-m3 -mthumb -Wall -O3 -ffunction-sections -fdata-sections -fstack-usage --specs=nano.specs
+CFLAGS  := -mcpu=cortex-m3 -mthumb -Wall -O3 -g -ffunction-sections -fdata-sections -fstack-usage --specs=nano.specs
 LDFLAGS := -T $(LINKER_SCRIPT) -nostartfiles -lc -lgcc -lnosys -Wl,--gc-sections -Wl,-Map=$(OUTPUT_DIR)/firmware.map,--cref
 
 # Startup file (absolute path)
 STARTUP_OBJ := $(OUTPUT_DIR)/Startup.o
 
 # Scan all source folders (recursive)
-SRC_DIRS := $(PRO_DIR)/main $(wildcard $(DRIVER_DIR)/*)
+SRC_DIRS := $(PRO_DIR)/main $(wildcard $(DRIVER_DIR)/*) $(PRO_DIR)
+
+VPATH := $(foreach dir,$(LIB_DIR),$(dir))
 
 # Source files
 SRC_FILES := $(foreach dir, $(SRC_DIRS), $(wildcard $(dir)/*.[cS]))
 
+LIB_FILES := $(foreach dir,$(LIB_DIR),$(wildcard $(dir)/*.[cS]))
+
+FILES_BASE_NAME := $(basename $(notdir $(LIB_FILES)))
+
 # Object files
 PROJ_OBJS := $(patsubst $(PRO_DIR)/%,$(OUTPUT_DIR)/%.o, $(basename $(SRC_FILES)))
-OBJS := $(PROJ_OBJS) $(STARTUP_OBJ)
+LIB_OBJS  := $(patsubst %,$(OUTPUT_DIR)/%.o,$(FILES_BASE_NAME))
+OBJS := $(PROJ_OBJS) $(STARTUP_OBJ) $(LIB_OBJS)
 
 # Include paths
 INCLUDE_DIRS := $(foreach dir, $(SRC_DIRS), -I$(dir))
+INCLUDE_DIRS += $(foreach dir, $(LIB_DIR), -I$(dir))
+
 CFLAGS += $(INCLUDE_DIRS)
 
 # Output files
@@ -39,14 +47,13 @@ $(shell mkdir -p $(OUTPUT_DIR))
 # Default target
 all: $(TARGET_HEX)
 
-# Compile C files to objects
-$(OUTPUT_DIR)/%.o: $(PRO_DIR)/%.c
+$(OUTPUT_DIR)/%.o: %.c
 	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
 	@echo "Compiled $< to $@"
 
 # Compile Assembly files to objects
-$(OUTPUT_DIR)/%.o: $(PRO_DIR)/%.S
+$(OUTPUT_DIR)/%.o: %.S
 	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
 	@echo "Compiled $< to $@"

@@ -3,15 +3,17 @@
 #define CONFIGSYSTEMDIALOG_H
 
 #include "main.h"
+#include "LibrarySelectionDialog.h"
 
 class ConfigSystemDialog : public wxDialog {
 public:
     ConfigSystemDialog( wxWindow* parent, wxString& linkerPath, wxString& startupPath, 
-                        wxString& libraryPath,const wxString& currentDir);
+                        wxString& libraryPath,const wxString& currentDir,const wxString &ProjectPath);
     void OnBrowseLinker(wxCommandEvent& event);
     void OnBrowseStartup(wxCommandEvent& event);
     void OnBrowseLibrary(wxCommandEvent& event); // Sự kiện mới cho nút Browse của thư viện
     void OnOK(wxCommandEvent& event);
+    void SyncLib(wxCommandEvent& event);
 
 private:
     wxTextCtrl* linkerTextCtrl;
@@ -24,6 +26,7 @@ private:
     wxString& libraryPathRef; // Tham chiếu tới libraryPath
 
     wxString currentDir; // Biến lưu đường dẫn hiện tại
+    wxString ProjectPath;
 
     enum {
         ID_BROWSE_LINKER = wxID_HIGHEST + 100,

@@ -9,7 +9,11 @@
 #include <wx/stdpaths.h>
 #include <wx/artprov.h>
 #include <wx/textfile.h>
-
+#include <wx/file.h>
+#include <wx/timer.h>
+#include <wx/stc/stc.h>
+#include <wx/wx.h>
+#include <wx/grid.h>
 
 
 

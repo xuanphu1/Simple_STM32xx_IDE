@@ -4,13 +4,23 @@
 #include "main.h"
 #include "DirectoryTreeManager.h"
 #include "ConfigSystemDialog.h"
+#include "ProcessHandle.h"
+#include "DebugManager.h"
+#include "RegisterModel.h"
+#include "RegisterView.h"
+#include "MemoryView.h"
+#include "AsmViewDialog.h"
+#include <map>
+#include <memory>
 
-class STM32IDE : public wxFrame {
+class STM32IDE : public wxFrame
+{
 public:
     STM32IDE();
 
 private:
-enum {
+    enum
+    {
         ID_BUILD = wxID_HIGHEST + 1,
         ID_UPLOAD,
         ID_RUN,
@@ -18,6 +28,8 @@ enum {
         ID_NEW_FOLDER,
         ID_DEBUG,
         ID_VIEW_MEMORY,
+        ID_VIEW_CORE_REGISTERS,
+        ID_VIEW_ASM,
         ID_SYSTEM_VIEWER,
         ID_CORE_PERIPHERALS,
         ID_PERIPH_ADC,
@@ -84,50 +96,79 @@ enum {
         ID_PERIPH_WWDG,
 
         ID_CONFIG_SYSTEM,
-        ID_DEBUG_STEP_INTO,  // ID cho nút Step Into
-        ID_DEBUG_STEP_OVER,  // ID cho nút Step Over
-        ID_DEBUG_STEP_OUT,   // ID cho nút Step Out
-        ID_DEBUG_CONTINUE,    // ID cho nút Continue
+        ID_DEBUG_STEP_INTO, // ID cho nút Step Into
+        ID_DEBUG_STEP_OVER, // ID cho nút Step Over
+        ID_DEBUG_STEP_OUT,  // ID cho nút Step Out
+        ID_DEBUG_CONTINUE,  // ID cho nút Continue
         ID_DEBUG_RESTART,
         ID_DEBUG_STOP,
 
         ID_DEBUG_CORE_NVIC,
         ID_DEBUG_CORE_SCAC,
         ID_DEBUG_CORE_SYSTICK,
-        ID_DEBUG_CORE_FAULTRP
-
+        ID_DEBUG_CORE_FAULTRP,
 
     };
 
-    wxTreeCtrl* tree;
-    wxTextCtrl* editor;
-    wxTextCtrl* console;
+    wxTreeCtrl *tree;
+    wxStyledTextCtrl *editor;
+    wxStyledTextCtrl *console;
+    bool isDebugRunning;
+
+    
 
     // Thêm các biến để lưu đường dẫn
-    wxString linkerPath;   // Đường dẫn tới linker script
-    wxString startupPath;  // Đường dẫn tới startup file
-    wxString makefilePath; // Đường dẫn tới Makefile
-    wxString configMakefile; // Đường dẫn tới config Makefile
+    wxString linkerPath;        // Đường dẫn tới linker script
+    wxString startupPath;       // Đường dẫn tới startup file
+    wxString makefilePath;      // Đường dẫn tới Makefile
+    wxString configMakefile;    // Đường dẫn tới config Makefile
     wxString currentWorkingDir; // Biến mới để lưu đường dẫn hiện tại
-    wxString toolPath; // Biến mới để lưu đường dẫn thư mục Tools
-    wxString libraryPath; // Biến mới để lưu đường dẫn thư viện
+    wxString toolPath;          // Biến mới để lưu đường dẫn thư mục Tools
+    wxString libraryPath;       // Biến mới để lưu đường dẫn thư viện
+    wxString hexPath;
+    wxString OutputGDB;
 
+    wxToolBar *toolbar;
+
+    std::vector<RegisterGroup> _registerGroupPeripheral; 
+    RegisterModel *_registerModel = nullptr; // Thêm con trỏ đến RegisterModel
+    RegisterGroup *_registerGroupCore = nullptr; // Biến để lưu nhóm register hiện tại
+
+    MemoryView *memoryView = nullptr; // Thêm con trỏ đến MemoryView
+    AsmViewDialog *asmViewDialog = nullptr; // Thêm con trỏ đến AsmViewDialog
+
+    std::map<int, std::unique_ptr<RegisterView>> registerViews;
+
+    
+
+    wxString currentFilePath;
     wxString projectPath;
-    DirectoryTreeManager* treeManager; // Thêm con trỏ đến DirectoryTreeManager
+    DirectoryTreeManager *treeManager = nullptr; // Thêm con trỏ đến DirectoryTreeManager
+    DebugManager *debugmanager = nullptr;
+    void OnGdbOutput(wxCommandEvent &event);
+    void OnNewFile(wxCommandEvent &event);
+    void OnOpenFile(wxCommandEvent &event);
+    void OnOpenProject(wxCommandEvent &event);
+    void OnBuild(wxCommandEvent &event);
+    void OnUpload(wxCommandEvent &event);
+    void OnRun(wxCommandEvent &event);
+    void OnDebug(wxCommandEvent &event);
+    void OnSave(wxCommandEvent &event); // Hàm lưu file
+    void OnKeyDown(wxKeyEvent &event);  // Xử lý sự kiện bàn phím (Ctrl + S)
+    void OnViewMemory(wxCommandEvent &event); // Xử lý sự kiện xem bộ nhớ
+    void OnViewRegisters(wxCommandEvent &event);
+    void OnViewASM(wxCommandEvent &event); // Xử lý sự kiện xem mã ASM
 
-    void OnNewFile(wxCommandEvent& event);
-    void OnOpenFile(wxCommandEvent& event);
-    void OnOpenProject(wxCommandEvent& event);
-    void OnBuild(wxCommandEvent& event);
-    void OnUpload(wxCommandEvent& event);
-    void OnRun(wxCommandEvent& event);
-    void OnPeripheralSelected(wxCommandEvent& event);
-    void OnConfigSystem(wxCommandEvent& event); // Thêm hàm xử lý sự kiện Config System
-
-    void OnDebugStepInto(wxCommandEvent& event);  // Sự kiện cho Step Into
-    void OnDebugStepOver(wxCommandEvent& event);  // Sự kiện cho Step Over
-    void OnDebugStepOut(wxCommandEvent& event);   // Sự kiện cho Step Out
-    void OnDebugContinue(wxCommandEvent& event);  // Sự kiện cho Continue
+    void LoadConfig();                  // Hàm tải file cấu hình khi khởi tạo
+    void OnPeripheralSelected(wxCommandEvent &event);
+    void OnConfigSystem(wxCommandEvent &event);  // Thêm hàm xử lý sự kiện Config System
+    void OnDebugStepInto(wxCommandEvent &event); // Sự kiện cho Step Into
+    void OnDebugStepOver(wxCommandEvent &event); // Sự kiện cho Step Over
+    void OnDebugStepOut(wxCommandEvent &event);  // Sự kiện cho Step Out
+    void OnDebugContinue(wxCommandEvent &event); // Sự kiện cho Continue
+    void OnDebugStop(wxCommandEvent &event);    // Sự kiện cho Stop
+    void OnDebugRestart(wxCommandEvent &event); // Sự kiện cho Restart
+    void OnMarginClick(wxStyledTextEvent &event);
 };
 
 #endif // STM32IDE_H

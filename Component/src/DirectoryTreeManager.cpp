@@ -1,7 +1,7 @@
 // src/DirectoryTreeManager.cpp
 #include "DirectoryTreeManager.h"
 
-DirectoryTreeManager::DirectoryTreeManager(wxTreeCtrl* tree, wxTextCtrl* console)
+DirectoryTreeManager::DirectoryTreeManager(wxTreeCtrl* tree, wxStyledTextCtrl* console)
     : tree(tree), console(console) {}
 
 void DirectoryTreeManager::LoadDirectoryTree(const wxString& projectPath) {
@@ -33,7 +33,7 @@ void DirectoryTreeManager::LoadDirectory(wxTreeItemId parent, const wxString& pa
     }
 }
 
-void DirectoryTreeManager::OnTreeSelect(wxTreeEvent& event, wxTextCtrl* editor) {
+void DirectoryTreeManager::OnTreeSelect(wxTreeEvent& event, wxStyledTextCtrl* editor, wxString& currentfile) {
     wxTreeItemId item = event.GetItem();
     if (!item.IsOk()) {
         console->AppendText("Invalid tree item selected.\n");
@@ -53,6 +53,7 @@ void DirectoryTreeManager::OnTreeSelect(wxTreeEvent& event, wxTextCtrl* editor) 
             file.ReadAll(&content);
             editor->SetValue(content);
             file.Close();
+            currentfile = filepath;
             console->AppendText("File loaded successfully: " + filepath + "\n");
         } else {
             console->AppendText("Cannot open file: " + filepath + "\n");
@@ -61,3 +62,4 @@ void DirectoryTreeManager::OnTreeSelect(wxTreeEvent& event, wxTextCtrl* editor) 
         console->AppendText("Selected item is a directory, not a file: " + filepath + "\n");
     }
 }
+

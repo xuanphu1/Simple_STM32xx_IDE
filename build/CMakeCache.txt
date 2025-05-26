@@ -256,7 +256,7 @@ CMAKE_CACHE_MAJOR_VERSION:INTERNAL=4
 //Minor version of cmake used to create the current loaded cache
 CMAKE_CACHE_MINOR_VERSION:INTERNAL=0
 //Patch version of cmake used to create the current loaded cache
-CMAKE_CACHE_PATCH_VERSION:INTERNAL=0
+CMAKE_CACHE_PATCH_VERSION:INTERNAL=2
 //Path to CMake executable.
 CMAKE_COMMAND:INTERNAL=C:/msys64/mingw64/bin/cmake.exe
 //Path to cpack program executable.
@@ -388,7 +388,7 @@ CMAKE_TAPI-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_VERBOSE_MAKEFILE
 CMAKE_VERBOSE_MAKEFILE-ADVANCED:INTERNAL=1
 //Details about finding wxWidgets
-FIND_PACKAGE_MESSAGE_DETAILS_wxWidgets:INTERNAL=[-LC:/msys64/mingw64/lib;;;-pipe;-Wl,--subsystem,windows;-mwindows;-lwx_mswu_core-3.0;-lwx_baseu-3.0][C:/msys64/mingw64/lib/wx/include/msw-unicode-3.0;C:/msys64/mingw64/include/wx-3.0][v3.0.5()]
+FIND_PACKAGE_MESSAGE_DETAILS_wxWidgets:INTERNAL=[-LC:/msys64/mingw64/lib;;;-Wl,--subsystem,windows;-mwindows;-lwx_mswu_core-3.2;-lwx_baseu-3.2;-lwx_mswu_stc-3.2][C:/msys64/mingw64/lib/wx/include/msw-unicode-3.2;C:/msys64/mingw64/include/wx-3.2][v3.2.8()]
 //wxWidgets_ROOT_DIR
 WX_ROOT_DIR:INTERNAL=wxWidgets_ROOT_DIR-NOTFOUND
 
